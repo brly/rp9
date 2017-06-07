@@ -220,6 +220,64 @@ fn frame_size_with_refs() {
     // render_size()
 }
 
+// 6.2.6 Compute image size syntax
+#[allow(dead_code)]
+fn compute_image_size() {
+    // MiCols = (FrameWidth + 7) >> 3
+    // MiRows = (FrameHeight + 7) >> 3
+    // Sb64Cols = (MiCols + 7) >> 3
+    // Sb64Rows = (MiRows + 7) >> 3
+}
+
+// 6.2.7 Interpolation filter syntax
+#[allow(dead_code)]
+fn read_interpolation_filter() {
+    // is_filter_switchable         # f(1)
+    // if ( is_filter_switchable == 1 ) {
+    //   Interpolation_filter = SWITCHABLE
+    // } else {
+    //   raw_interpolation_filter   # f(2)
+    //   Interpolation_filter = literal_to_type[ raw_interpolation_filter ]
+    // }
+}
+
+// 6.2.8 Loop filter params syntax
+#[allow(dead_code)]
+fn loop_filter_params() {
+    // loop_filter_level            # f(6)
+    // loop_filter_sharpness        # f(3)
+    // loop_filter_delta_enabled    # f(1)
+    // if ( loop_filter_delta_enabled == 1 ) {
+    //   loop_filter_delta_update   # f(1)
+    //   if ( loop_filter_delta_update == 1 ) {
+    //     for ( i = 0; i < 4; i++ ) {
+    //       update_ref_delta       # f(1)
+    //       if ( update_ref_delta == 1 ) {
+    //         loop_filter_ref_deltas[i]    # s(6)
+    //       }
+    //     }
+    //     for ( i = 0; i < 2; i++ ) {
+    //       update_mode_delta      # f(1)
+    //       if ( update_mode_delta == 1 )
+    //         loop_filter_mode_deltas[i]   # s(6)
+    //     }
+    //   }
+    // }
+}
+
+// 6.2.9 Quantization params syntax
+#[allow(dead_code)]
+fn quantization_params() {
+    // base_q_idx   # f(8)
+    // delta_q_y_dc = read_delta_q()
+    // delta_q_uv_dc = read_delta_q()
+    // delta_q_uv_ac = read_delta_q()
+    // Lossless = base_q_idx == 0 && delta_q_y_dc == 0
+    //                              && delta_q_uv_dc == 0 && delta_q_uv_ac == 0
+}
+
+
+
 fn main() {
     // println!("Hello, world!");
 }
