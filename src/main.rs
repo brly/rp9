@@ -276,7 +276,117 @@ fn quantization_params() {
     //                              && delta_q_uv_dc == 0 && delta_q_uv_ac == 0
 }
 
+// 6.2.10 Delta quantizer syntax
+#[allow(dead_code)]
+fn read_delta_q() {
+    // delta_coded  # f(1)
+    // if ( delta_coded ) {
+    //   delta_q    # f(4)
+    // } else {
+    //   delta_q = 0
+    // }
+    // return delta_q
+}
 
+// 6.2.11 Segmentation params syntax
+#[allow(dead_code)]
+fn segmentation_params() {
+    // segmentation_enabled # f(1)
+    // if ( segmentation_enabled == 1 ) {
+    //   segmentation_update_map    # f(1)
+    //   if ( segmentation_update_map == 1 ) {
+    //     for ( i = 0; i < 7; i++ )
+    //       segmentation_tree_probs[i] = read_prob()
+    //     segmentation_temporal_update # f(1)
+    //     for ( i = 0; i < 3; i++ )
+    //       segmentation_pred_prob[i] = segmentation_temporal_update ? read_prob() : 255
+    //   }
+    //   segmentation_update_map    # f(1)
+    //   if ( segmentation_update_data == 1 ) {
+    //     segmentation_abs_or_delta_update # f(1)
+    //     for ( i = 0; i < MAX_SEGMENTS; i++ ) {
+    //       for ( j = 0; j < SEG_LVL_MAX; j++ ) {
+    //         feature_value = 0
+    //         feature_enabled  # f(1)
+    //         FeatureEnabled[i][j] = feature_enabled
+    //         if ( feature_enabled == 1 ) {
+    //           bits_to_read = segmentation_feature_bits[j]
+    //           feature_value  # f(bits_to_read)
+    //           if ( segmentation_feature_signed[j] == 1 ) {
+    //             feature_sign # f(1)
+    //             if ( feature_sign == 1 )
+    //               feature_value *= -1
+    //           }
+    //         }
+    //         FeatureDelta[i][j] = feature_value
+    //       }
+    //     }
+    //   }
+    // }
+}
+
+// 6.2.12 Probability syntax
+#[allow(dead_code)]
+fn read_prob() {
+    // prob_doded   # f(1)
+    // if ( prob_coded ) {
+    //   prob       # f(8)
+    // } else {
+    //   prob = 255
+    // }
+    // return prob
+}
+
+// 6.2.13 Tile info syntax
+#[allow(dead_code)]
+fn tile_info() {
+    // minLog2TileCols = calc_min_log2_tile_cols()
+    // maxLog2TileCols = calc_max_log2_tile_cols()
+    // tile_cols_log2 = minLog2TileCols
+    // while ( tile_cols_log2 < maxLog2TileCols ) {
+    //   increment_tile_cols_log2   # f(1)
+    //   if ( increment_tile_cols_log2 == 1 )
+    //     tile_cols_log2++
+    //   else
+    //     break
+    // }
+    // tile_rows_log2   # f(1)
+    // if ( tile_rows_log2 == 1 ) {
+    //   increment_tile_rows_log2   # f(1)
+    //   tile_rows_log2 += increment_tile_rows_log2
+    // }
+}
+
+// 6.2.14 Tile size calculation
+#[allow(dead_code)]
+fn calc_min_log2_tile_cols() {
+    // minLog2 = 0
+    // while ( (MAX_TILE_WIDTH_B64 << minLog2) < Sb64Cols )
+    //   minLog2++
+    // return minLog2
+}
+#[allow(dead_code)]
+fn calc_max_log2_tile_cols() {
+    // maxLog2 = 1
+    // while ( (Sb64Cols >> maxLog2) >= MIN_TILE_WIDTH_B64 )
+    //   maxLog2++
+    // return maxLog2 - 1
+}
+
+// 6.3 Compressed header syntax
+#[allow(dead_code)]
+fn compressed_header() {
+    // read_tx_mode()
+    // if ( tx_mode == TX_MODE_SELECT ) {
+    //   tx_mode_probs()
+    // }
+    // read_coef_probs()
+    // read_skip_prob()
+    // if ( FrameIsIntra == 0 ) {
+    //   read_inter_mode_probs()
+    //   
+    // }
+}
 
 fn main() {
     // println!("Hello, world!");
