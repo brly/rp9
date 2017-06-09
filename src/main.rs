@@ -6,7 +6,7 @@ struct Bitstream {
 
 // 6.1 Frame syntax
 #[allow(dead_code)]
-fn frame(sz: u32) {
+fn frame(/*sz: u32*/) {
     // startBitPos = get_position()
     // uncompressed_header()
     // trailing_bits()
@@ -384,9 +384,314 @@ fn compressed_header() {
     // read_skip_prob()
     // if ( FrameIsIntra == 0 ) {
     //   read_inter_mode_probs()
-    //   
+    //   if ( interpolation_filter == SWITCHABLE )
+    //     read_interp_filter_probs()
+    //   read_is_inter_probs()
+    //   frame_reference_mode()
+    //   frame_reference_mode_probs()
+    //   read_y_mode_probs()
+    //   read_partition_probs()
+    //   mv_probs()
     // }
 }
+
+// 6.3.1 Tx mode syntax
+#[allow(dead_code)]
+fn read_tx_mode() {
+    // if ( Lossless == 1 ) {
+    //   tx_mode = ONLY_4X4
+    // } else {
+    //   tx_mode    # L(2)
+    //   if ( tx_mode == ALLOW_32X32 ) {
+    //     tx_mode_select # L(1)
+    //     tx_mode += tx_mode_select
+    //   }
+    // }
+}
+
+// 6.3.2 Tx mode probs syntax
+#[allow(dead_code)]
+fn tx_mode_probs() {
+    // for ( i = 0; i < TX_SIZE_CONTEXTS; i++ )
+    //   for ( j = 0; j < TX_SIZES - 3; j++ )
+    //     tx_probs_8x8[i][j] = diff_update_prob(tx_probs_8x8[i][j])
+    // for ( i = 0; i < TX_SIZE_CONTEXTS; i++ )
+    //   for ( j = 0; j < TX_SIZES - 2; j++ )
+    //     tx_probs_16x16[i][j] = diff_update_prob(tx_probs_16x16[i][j])
+    // for ( i = 0; i < TX_SIZE_CONTEXTS; i++ )
+    //   for ( j = 0; j < TX_SIZES - 1; j++ )
+    //     tx_probs_32x32[i][j] = diff_update_prob(tx_probs_32x32[i][j])
+}
+
+// 6.3.3 Diff update prob syntax
+#[allow(dead_code)]
+fn diff_update_prob(/*prob: f32*/) {
+    // update_prob  # B(252)
+    // if ( update_prob == 1 ) {
+    //   deltaProb = decode_term_subexp()
+    //   prob = inv_remap_prob(deltaProb, prob)
+    // }
+    // return prob
+}
+
+// 6.3.4 Decode term subexp syntax
+#[allow(dead_code)]
+fn decode_term_subexp() {
+    // bit # L(1)
+    // if ( bit == 0 ) {
+    //   sub_exp_val    # L(4)
+    //   return sub_exp_val
+    // }
+    // bit # L(1)
+    // if ( bit == 0 ) {
+    //   sub_exp_val_minus16 # L(4)
+    //   return sub_exp_val_minus16 + 16
+    // }
+    // bit # L(1)
+    // if ( bit == 0 ) {
+    //   sub_exp_val_minus32 # L(5)
+    //   return sub_exp_val_minus32 + 32
+    // }
+    // v # L(5)
+    // if ( v < 65 )
+    //   return v + 64
+    // bit # L(1)
+    // return (v << 1) - 1 + bit
+}
+
+// 6.3.5 Inv remap prob syntax
+#[allow(dead_code)]
+fn inv_remap_prob(/*deltaProb: u32, prob: u32*/) {
+    // m = prob
+    // v = deltaProb
+    // v = inv_map_table[v]
+    // m--
+    // if ( (m << 1) <= 255 )
+    //   m = 1 + inv_recenter_nonneg(v, m)
+    // else
+    //   m = 255 - inv_recenter_nonneg(v, 255 - 1 - m)
+    // return m
+}
+
+// 6.3.6 Inv recenter nonneg syntax
+#[allow(dead_code)]
+fn inv_recenter_nonneg(/*v: u32, m: u32*/) {
+    // if ( v > 2 * m )
+    //   return v
+    // if ( v & 1 )
+    //   return m - ((v+1) >> 1)
+    // return m + (v >> 1)
+}
+
+// 6.3.7 Coef probs syntax
+#[allow(dead_code)]
+fn read_coef_probs() {
+    // maxTxSize = tx_mode_to_biggest_tx_size[tx_mode]
+    // for ( txSz = TX_4X4; txSz <= maxTxSize; txSz++ ) {
+    //   update_probs   # L(1)
+    //   if ( update_probs == 1 )
+    //     for ( i = 0; i < 2; i++ )
+    //       for ( j = 0; j < 2; j++ )
+    //         for ( k = 0; k < 6; k++ )
+    //           maxL = ( k == 0 ) ? 3 : 6
+    //             for ( l = 0; l < maxL; l++ )
+    //               for ( m = 0; m < 3; m++ )
+    //                 coef_probs[txSz][i][j][k][l][m] = diff_update_prob(coef_probs[txSz][i][j][k][l][m])
+    // }
+}
+
+// 6.3.8 Skip probs syntax
+#[allow(dead_code)]
+fn read_skip_prob() {
+    // for ( i = 0; i < SKIP_CONTEXTS; i++ )
+    //   skip_prob[i] = diff_update_prob(skip_prob[i])
+}
+
+// 6.3.9 Inter mode probs syntax
+#[allow(dead_code)]
+fn read_inter_mode_probs() {
+    // for ( i = 0; i < INTER_MODE_CONTEXTS; i++ )
+    //   for ( j = 0; j < INTER_MODES - 1; j++ )
+    //     inter_mode_probs[i][j] = diff_update_prob(inter_mode_probs[i][j])
+}
+
+// 6.3.10 Interp filter probs syntax
+#[allow(dead_code)]
+fn read_interp_filter_probs() {
+    // for ( j = 0; j < INTERP_FILTER_CONTEXTS; j++ )
+    //   for ( i = 0; i < SWITCHABLE_FILTERS - 1; i++ )
+    //     interp_filter_probs[j][i] = diff_update_prob(interp_filter_probs[j][i])
+}
+
+// 6.3.11 Intra inter probs syntax
+#[allow(dead_code)]
+fn read_is_inter_probs() {
+    // for ( i = 0; i < IS_INTER_CONTEXTS; i++ )
+    //   is_inter_prob[i] = diff_update_prob(is_inter_prob[i])
+}
+
+// 6.3.12 Frame reference mode syntax
+#[allow(dead_code)]
+fn frame_reference_mode() {
+    // compoundReferenceAllowed = 0
+    // for ( i = 1; i < REFS_PER_FRAME; i++ )
+    //   if ( ref_frame_sign_bias[i+1] != ref_frame_sign_bias[1] )
+    //     compoundReferenceAllowed = 1
+    // if ( compoundReferenceAllowed == 1 ) {
+    //   non_single_reference # L(1)
+    //   if ( non_single_reference == 0 ) {
+    //     reference_mode = SINGLE_REFERENCE
+    //   } else {
+    //     reference_select # L(1)
+    //     if ( reference_select == 0 )
+    //       reference_mode = COMPOUND_REFERENCE
+    //     else
+    //       reference_mode = REFERENCE_MODE_SELECT
+    //     setup_compound_reference_mode()
+    //   }
+    // } else {
+    //   reference_mode = SINGLE_REFERENCE
+    // }
+}
+
+// 6.3.13 Frame reference mode probs syntax
+#[allow(dead_code)]
+fn frame_reference_mode_probs() {
+    // if ( reference_mode == REFERENCE_MODE_SELECT ) {
+    //   for ( i = 0; i < COMP_MODE_CONTEXTS; i++ )
+    //     comp_mode_prob[i] = diff_update_prob(comp_mode_prob[i])
+    // }
+    // if ( reference_mode != COMPOUND_REFERENCE ) {
+    //   for ( i = 0; i < REF_CONTEXTS; i++ ) {
+    //     single_ref_prob[i][0] = diff_update_prob(single_ref_prob[i][0])
+    //     single_ref_prob[i][1] = diff_update_prob(single_ref_prob[i][1])
+    //   }
+    // }
+    // if ( reference_mode != SINGLE_REFERENCE ) {
+    //   for ( i = 0; i < REF_CONTEXTS; i++ )
+    //     comp_ref_prob[i] = diff_update_prob(comp_ref_prob[i])
+    // }
+}
+
+// 6.3.14 Y mode probs syntax
+#[allow(dead_code)]
+fn read_y_mode_probs() {
+    // for ( i = 0; i < BLOCK_SIZE_GROUPS; i++ )
+    //   for ( j = 0; j < INTRA_MODES - 1; j++ )
+    //     y_mode_probs[i][j] = diff_update_prob(y_mode_probs[i][j])
+}
+
+// 6.3.15 Partition probs syntax
+#[allow(dead_code)]
+fn read_partition_probs() {
+    // for ( i = 0; i < PARTITION_CONTEXTS; i++ )
+    //   for ( j = 0; j < PARTITION_TYPES - 1; j++ )
+    //     partition_probs[i][j] = diff_update_prob(partition_probs[i][j])
+}
+
+// 6.3.16 MV probs syntax
+#[allow(dead_code)]
+fn mv_probs() {
+    // for ( j = 0; j < MV_JOINTS - 1; j++ )
+    //   mv_joint_probs[j] = update_mv_prob(mv_joint_probs[j])
+    // for ( i = 0; i < 2; i++ ) {
+    //   mv_sign_prob[i] = update_mv_prob(mv_sign_prob[i])
+    //   for ( j = 0; j < MV_CLASSES - 1; j++ )
+    //     mv_class_probs[i][j] = update_mv_prob(mv_class_probs[i][j])
+    //   mv_class0_bit_prob[i] = update_mv_prob(mv_class0_bit_prob[i])
+    //   for ( j = 0; j < MV_OFFSET_BITS; j++ )
+    //     mv_bits_prob[i][j] = update_mv_prob(mv_bits_prob[i][j])
+    // }
+    // for ( i = 0; i < 2; i++ ) {
+    //   for ( j = 0; j < CLASS0_SIZE; j++ )
+    //     for ( k = 0; k < MV_FR_SIZE - 1; k++ )
+    //       mv_class0_fr_probs[i][j][k] = update_mv_prob(mv_class0_fr_probs[i][j][k])
+    //   for ( k = 0; k < MV_FR_SIZE - 1; k++ )
+    //     mv_fr_probs[i][k] = update_mv_prob(mv_fr_probs[i][k])
+    // }
+    // if ( allow_high_precision_mv ) {
+    //   for ( i = 0; i < 2; i++ ) {
+    //     mv_class0_hp_prob[i] = update_mv_prob(mv_class0_hp_prob[i])
+    //     mv_hp_prob[i] = update_mv_prob(mv_hp_prob[i])
+    //   }
+    // }
+}
+
+// 6.3.17 Update mv prob syntax
+#[allow(dead_code)]
+fn update_mv_prob(/* prob:u32 */) {
+    // update_mv_prob # B(252)
+    // if ( update_mv_prob == 1 ) {
+    //   mv_prob # L(7)
+    //   prob = (mv_prob << 1) | 1
+    // }
+    // return prob
+}
+
+// 6.3.18 Setup compound reference mode syntax
+#[allow(dead_code)]
+fn setup_compound_reference_mode() {
+    // if ( ref_frame_sign_bias[LAST_FRAME] == ref_frame_sign_bias[GOLDEN_FRAME] ) {
+    //   CompFixedRef = ALTREF_FRAME
+    //   CompVarRef[0] = LAST_FRAME
+    //   CompVarRef[1] = GOLDEN_FRAME
+    // } else if ( ref_frame_sign_bias[LAST_FRAME] == ref_frame_sign_bias[ALTREF_FRAME] ) {
+    //   CompFixedRef = GOLDEN_FRAME
+    //   CompVarRef[0] = LAST_FRAME
+    //   CompVarRef[1] = ALTREF_FRAME
+    // } else {
+    //   CompFixedRef = LAST_FRAME
+    //   CompVarRef[0] = GOLDEN_FRAME
+    //   CompVarRef[1] = ALTREF_FRAME
+    // }
+}
+
+// 6.4 Decode tiles syntax
+#[allow(dead_code)]
+fn decode_tiles(/*sz*/) {
+    // tileCols = 1 << tile_cols_log2
+    // tileRows = 1 << tile_rows_log2
+    // clear_above_context()
+    // for ( tileRow = 0; tileRow < tileRows; tileRow++ ) {
+    //   for ( tileCol = 0; tileCol < tileCols; tileCol++ ) {
+    //     lastTile = (tileRow == tileRows - 1) && (tileCol == tileCols - 1)
+    //     if ( lastTile ) {
+    //       tile_size = sz
+    //     } else {
+    //       tile_size # f(32)
+    //       sz -= tile_size + 4
+    //     }
+    //     MiRowStart = get_tile_offset(tileRow, MiRows, tile_rows_log2)
+    //     MiRowEnd = get_tile_offset(tileRow+1, MiRows, tile_rows_log2)
+    //     MiColStart = get_tile_offset(tileCol, MiCols, tile_cols_log2)
+    //     MiColEnd = get_tile_offset(tileCol+1, MiCols, tile_cols_log2)
+    //     init_bool(tile_size)
+    //     decode_tile()
+    //     exit_bool()
+    //   }
+    // }
+}
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 fn main() {
     // println!("Hello, world!");
