@@ -672,6 +672,172 @@ fn decode_tiles(/*sz*/) {
     // }
 }
 
+// 6.4.1 Get tile offset syntax
+#[allow(dead_code)]
+fn get_tile_offset() {
+    // sbs = (mis + 7) >> 3
+    // offset = ((tileNum * sbs) >> tileSzLog2) << 3
+    // return Min(offset)
+}
+
+// 6.4.2 Decode tile syntax
+#[allow(dead_code)]
+fn decode_tile() {
+    // for ( r = MiRowStart; r < MiRowEnd; r += 8 ) {
+    //   clear_left_context()
+    //   for ( c = MiColStart; c < MiColEnd; c += 8 )
+    //     decode_partition(r, c, BLOCK_64X64)
+    // }
+}
+
+// 6.4.3 Decode partition syntax
+#[allow(dead_code)]
+fn decode_partition() {
+    // if ( r >= MiRows || c >= MiCols)
+    //     return 0
+    // num8x8 = num_8x8_blocks_wide_lookup[bsize]
+    // halfBlock8x8 = num8x8 >> 1
+    // hasRows = (r + halfBlock8x8) < MiRows
+    // hasCols = (c + halfBlock8x8) < MiCols
+    // partition # T
+    // subsize = subsize_lookup[partition][bsize]
+    // if ( subsize < BLOCK_8X8 || partition == PARTITION_NONE ) {
+    //     decode_block(r, c, subsize)
+    // } else if ( partition == PARTITION_HORZ ) {
+    //     decode_block(r, c, subsize)
+    //     if (hasRows) {
+    //         decode_block(r+halfBlock8x8, c, subsize)
+    //     }
+    // } else if ( partition == PARTITION_VERZT ) {
+    //     decode_block(r, c, subsize)
+    //     if (hasCols)
+    //         decode_block(r, c+halfBlock8x8, subsize)
+    // } else {
+    //     decode_partition(r, c, subsize)
+    //     decode_partition(r, c+halfBlock8x8, subsize)
+    //     decode_partition(r+halfBlock8x8, c, subsize)
+    //     decode_partition(r+halfBlock8x8, c+halfBlock8x8, subsize)
+    // }
+    // if (bsize==BLOCK_8X8 || partition != PARTITION_SPLIT) {
+    //     for (i=0;i<num8x8;i++) {
+    //         AbovePartitionContext[c+i] = 15 >> b_width_log2_lookup[subsize]
+    //         LeftPartitionContext[r+i] = 15 >> b_height_log2_lookup[subsize]
+    //     }
+    // }
+}
+
+// 6.4.4 Decode block syntax
+#[allow(dead_code)]
+fn decode_block(/*r, c, subsize*/) {
+    // MiRow = r
+    // MiCol = c
+    // MiSize = subsize
+    // AvailU = r > 0
+    // AvailL = c > MiColStart
+    // mode_info()
+    // EobTotal = 0
+    // residual()
+    // if (is_inter && subsize >= BLOCK_8X8 && EobTotal == 0) {
+    //     skip = 1
+    // }
+    // for (y=0;y<num_8x8_blocks_high_lookup[subsize];y++)
+    //     for (x=0;x<num_8x8_blocks_wide_lookup[subsize];x++) {
+    //         Skips[r+y][c+x] = skip
+    //         TxSizes[r+y][c+x] = tx_size
+    //         MiSizes[r+y][c+x] = MiSize
+    //         YModes[r+y][c+x] = y_mode
+    //         SegmentIds[r+y][c+x] = segment_id
+    //         for (refList=0;refList<2;refList++)
+    //             RefFrames[r+y][c+x][refList] = ref_frame[refList]
+    //         if (is_inter) {
+    //             InterpFilters[r+y][c+x] = interp_filter
+    //             for(refList=0;refList<2;refList++) {
+    //                 Mvs[r+y][c+x][refList] = BlockMvs[refList][3]
+    //                 for(b=0;b<4;b++)
+    //                     SubMvs[r+y][c+x][refList][b] = BlockMvs[refList][b]
+    //             }
+    //         } else {
+    //             for(b=0;b<4;b++)
+    //                 SubModes[r+y][c+x][b] = sub_modes[b]
+    //         }
+    //     }
+}
+
+// 6.4.5 Mode info syntax
+#[allow(dead_code)]
+fn mode_info() {
+    // if (FrameIsIntra)
+    //     intra_frame_mode_info()
+    // else
+    //     inter_frame_mode_info()
+}
+
+// 6.4.6 Intra frame mode info syntax
+#[allow(dead_code)]
+fn intra_frame_mode_info() {
+    intra_segment_id()
+    read_skip()
+    read_tx_size(1)
+    ref_frame[0] = INTRA_FRAME
+    ref_frame[1] = NONE
+    is_inter = 0
+    if (MiSize >= BLOCK_8X8) {
+        default_intra_mode # T
+        y_mode = default_intra_mode
+        for(b=0;b<4;b++)
+            sub_modes[b] = y_mode
+    } else {
+        num4x4w = num_4x4_blocks_wide_lookup[MiSize]
+        num4x4h = num_4x4_blocks_high_lookup[MiSize]
+        for(idy=0;idy<2;idy+=num4x4h) {
+            for(idx=0;idx<2;idx+=num4x4w) {
+                default_intra_mode # T
+                for(y2=0;y2<num4x4h;y2++)
+                    for(x2=0;x2<num4x4w;x2++)
+                        sub_modes[(idy+y2)*2+idx+x2] = default_intra_mode
+            }
+        }
+        y_mode = default_intra_mode
+    }
+    default_uv_mode # T
+    uv_mode = default_uv_mode
+}
+
+// 6.4.7 Intra segment id syntax
+#[allow(dead_code)]
+fn intra_segment_id() {
+    // if (segmentation_enabled && segmentation_update_map)
+    //     segment_id # T
+    // else
+    //     segment_id = 0
+}
+
+// 6.4.8 Skip syntax
+#[allow(dead_code)]
+fn read_skip() {
+    // if (seg_feature_active(SEG_LVL_SKIP)) {
+    //     skip = 1
+    // } else {
+    //     Skip # T
+    // }
+}
+
+// 6.4.9 Segmentation feature active syntax
+#[allow(dead_code)]
+fn seg_feature_active(/* feature */) {
+    // return segmentation_enabled && FeatureEnabled[segment_id][feature]
+}
+
+// 6.4.10 Tx size syntax
+#[allow(dead_code)]
+fn read_tx_size(/* allowSelect */) {
+    // maxTxSize = max_txsize_lookup[MiSize]
+    // if (allowSelect && tx_mode == TX_MODE_SELECT && MiSize >= BLOCK_8X8)
+    //     tx_size # T
+    // else
+    //     tx_size = Min(maxTxSize, tx_mode_to_biggest_tx_size[tx_mode])
+}
+
 //
 //
 //
