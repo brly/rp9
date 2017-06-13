@@ -775,32 +775,32 @@ fn mode_info() {
 // 6.4.6 Intra frame mode info syntax
 #[allow(dead_code)]
 fn intra_frame_mode_info() {
-    intra_segment_id()
-    read_skip()
-    read_tx_size(1)
-    ref_frame[0] = INTRA_FRAME
-    ref_frame[1] = NONE
-    is_inter = 0
-    if (MiSize >= BLOCK_8X8) {
-        default_intra_mode # T
-        y_mode = default_intra_mode
-        for(b=0;b<4;b++)
-            sub_modes[b] = y_mode
-    } else {
-        num4x4w = num_4x4_blocks_wide_lookup[MiSize]
-        num4x4h = num_4x4_blocks_high_lookup[MiSize]
-        for(idy=0;idy<2;idy+=num4x4h) {
-            for(idx=0;idx<2;idx+=num4x4w) {
-                default_intra_mode # T
-                for(y2=0;y2<num4x4h;y2++)
-                    for(x2=0;x2<num4x4w;x2++)
-                        sub_modes[(idy+y2)*2+idx+x2] = default_intra_mode
-            }
-        }
-        y_mode = default_intra_mode
-    }
-    default_uv_mode # T
-    uv_mode = default_uv_mode
+    // intra_segment_id()
+    // read_skip()
+    // read_tx_size(1)
+    // ref_frame[0] = INTRA_FRAME
+    // ref_frame[1] = NONE
+    // is_inter = 0
+    // if (MiSize >= BLOCK_8X8) {
+    //     default_intra_mode # T
+    //     y_mode = default_intra_mode
+    //     for(b=0;b<4;b++)
+    //         sub_modes[b] = y_mode
+    // } else {
+    //     num4x4w = num_4x4_blocks_wide_lookup[MiSize]
+    //     num4x4h = num_4x4_blocks_high_lookup[MiSize]
+    //     for(idy=0;idy<2;idy+=num4x4h) {
+    //         for(idx=0;idx<2;idx+=num4x4w) {
+    //             default_intra_mode # T
+    //             for(y2=0;y2<num4x4h;y2++)
+    //                 for(x2=0;x2<num4x4w;x2++)
+    //                     sub_modes[(idy+y2)*2+idx+x2] = default_intra_mode
+    //         }
+    //     }
+    //     y_mode = default_intra_mode
+    // }
+    // default_uv_mode # T
+    // uv_mode = default_uv_mode
 }
 
 // 6.4.7 Intra segment id syntax
@@ -837,6 +837,336 @@ fn read_tx_size(/* allowSelect */) {
     // else
     //     tx_size = Min(maxTxSize, tx_mode_to_biggest_tx_size[tx_mode])
 }
+
+// 6.4.11 Inter frame mode info syntax
+#[allow(dead_code)]
+fn inter_frame_mode_info() {
+    // LeftRefFrame[0] = AvailL ? RefFrames[MiRow][MiCol-1][0] : INTRA_FRAME
+    // AboveRefFrame[0]  = AvailU ? RefFrames[MiRow-1][MiCol][0] : INTRA_FRAME
+    // LeftRefFrame[1] = AvailL ? RefFrames[MiRow][MiCol-1][1] : NONE
+    // AboveRefFrame[1] = AvailU ? RefFrames[MiRow-1][MiCol][1] : NONE
+    // LeftIntra = LeftRefFrame[0] <= INTRA_FRAME
+    // AboveIntra = AboveRefFrame[0] <= INTRA_FRAME
+    // LeftSingle = LeftRefFrame[1] <= NONE
+    // AboveSingle = AboveRefFrame[1] <= NONE
+    // inter_segment_id()
+    // read_skip()
+    // read_is_inter()
+    // read_tx_size(!skip || !is_inter)
+    // if (is_inter)
+    //     inter_block_mode_info()
+    // else
+    //     intra_block_mode_info()
+}
+
+// 6.4.12 Inter segment id syntax
+#[allow(dead_code)]
+fn inter_segment_id() {
+    // if (segmentation_enabled) {
+    //     predictedSegmentId = get_segment_id()
+    //     if (segmentation_update_map) {
+    //         if (segmentation_temporal_update) {
+    //             seg_id_predicted # T
+    //             if (seg_id_predicted)
+    //                 segment_id = predictedSegmentId
+    //             else
+    //                 segment_id # T
+    //             for (i=0;i<num_8x8_blocks_wide_lookup[MiSize];i++)
+    //                 AboveSegPredContext[MiCol+i] = seg_id_predicted
+    //             for (i=0;i<num_8x8_blocks_high_lookup[MiSize];i++)
+    //                 LeftSegPredContext[MiRow+i] = seg_id_predicted
+    //         } else {
+    //             segment_id # T
+    //         }
+    //     } else {
+    //         segment_id = predictedSegmentId
+    //     }
+    // } else {
+    //     segment_id = 0
+    // }
+}
+
+// 6.4.13 Is inter syntax
+#[allow(dead_code)]
+fn read_is_inter() {
+    // if (seg_feature_active(SEG_LVL_REF_FRAME))
+    //     is_inter = FeatureData[segment_id][SEG_LVL_REF_FRAME] != INTRA_FRAME
+    // else
+    //     is_inter # T
+}
+
+// 6.4.14 Get segment id syntax
+#[allow(dead_code)]
+fn get_segment_id() {
+    // bw = num_8x8_blocks_wide_lookup[MiSize]
+    // bh = num_8x8_blocks_high_lookup[MiSize]
+    // xmis = Min(MiCols - MiCol, bw)
+    // ymis = Min(MiRows - MiRow, bh)
+    // seg = 7
+    // for(y=0;y<ymis;y++)
+    //     for(x=0;x<xmis;x++)
+    //         seg = Min(seg, PrevSegmentIds[MiRow+y][MiCol+x])
+    // return seg
+}
+
+// 6.4.15 Intra block mode info syntax
+#[allow(dead_code)]
+fn intra_block_mode_info() {
+    // ref_frame[0] = INTRA_FRAME
+    // ref_frame[1] = NONE
+    // if(MiSize >= BLOCK_8X8) {
+    //     intra_mode # T
+    //     y_mode = intra_mode
+    //     for(b=0;b<4;b++)
+    //         sub_modes[b] = y_mode
+    // } else {
+    //     num4x4w = num_4x4_blocks_wide_lookup[MiSize]
+    //     num4x4h = num_4x4_blocks_high_lookup[MiSize]
+    //     for(idy=0;idy<2;idy+=num4x4h) {
+    //         for(idx=0;idx<2;idx+=num4x4w) {
+    //             sub_intra_mode # T
+    //             for(y2=0;y2<num4x4h;y2++)
+    //                 for(x2=0;x2<num4x4w;x2++)
+    //                     sub_modes[(idy+y2)*2+idx+x2] = sub_intra_mode
+    //         }
+    //     }
+    //     y_mode = sub_intra_mode
+    // }
+    // uv_mode # T
+}
+
+// 6.4.16 Inter block mode info syntax
+#[allow(dead_code)]
+fn inter_block_mode_info() {
+    // read_ref_frames()
+    // for(j=0;j<2;j++) {
+    //     if(ref_frame[j]>INTRA_FRAME) {
+    //         find_mv_refs(ref_frame[j], -1)
+    //         find_best_ref_mvs(j)
+    //     }
+    // }
+    // isCompound = ref_frame[1] > INTRA_FRAME
+    // if(seg_feature_active(SEG_LVL_SKIP)) {
+    //     y_mode = ZEROMV
+    // } else if (MiSize >= BLOCK_8X8) {
+    //     inter_mode # T
+    //     y_mode = NEARESTMV + inter_mode
+    // }
+    // if(interpolation_filter == SWITCHABLE)
+    //     interp_filter # T
+    // else
+    //     interp_filter = interpolation_filter
+    // if(MiSize<BLOCK_8X8) {
+    //     num4x4w = num_4x4_blocks_wide_lookup[MiSize]
+    //     num4x4h = num_4x4_blocks_high_lookup[MiSize]
+    //     for(idy=0;idy<2;idy+=num4x4h) {
+    //         for(idx=0;idx<2;idx+=num4x4w) {
+    //             inter_mode # T
+    //             y_mode = NEARESTMV + inter_mode
+    //             if(y_mode==NEARESTMV || y_mode == NEARMV)
+    //                 for(j=0;j<1+isCompound;j++)
+    //                     append_sub8x8_mvs(idy*2+idx,j)
+    //             assign_mv(isCompound)
+    //             for(y2=0;y2<num4x4h;y2++) {
+    //                 for(x2=0;x2<num4x4w;x2++) {
+    //                     block=(idy+y2)*2+idx+x2
+    //                     for(refList=0;refList<1+isCompound;refList++)
+    //                         BlockMvs[refList][block] = Mv[refList]
+    //                 }
+    //             }
+    //         }
+    //     }
+    // } else {
+    //     assign_mv(isCompound)
+    //     for(refList=0;refList<1+isCompound;refList++)
+    //         for(block=0;block<4;block++)
+    //             BlockMvs[refList][block]=Mv[refList]
+    // }
+}
+
+// 6.4.17 Ref frames syntax
+#[allow(dead_code)]
+fn read_ref_frames() {
+    // if(seg_feature_active(SEG_LVL_REF_FRAME)) {
+    //     ref_frame[0]=FeatureData[segment_id][SEG_LVL_REF_FRAME]
+    //     ref_frame[1]=NONE
+    // } else {
+    //     if(reference_mode==REFERENCE_MODE_SELECT)
+    //         comp_mode # T
+    //     else
+    //         comp_mode = reference_mode
+    //     if(comp_mode==COMPOUND_REFERENCE) {
+    //         idx=ref_frame_sign_bias[CompFixedRef]
+    //         comp_ref # T
+    //         ref_frame[idx]=CompFixedRef
+    //         ref_frame[!idx]=CompVarRef[comp_ref]
+    //     }else{
+    //         single_ref_p1 # T
+    //         if(single_ref_p1){
+    //             single_ref_p2 # T
+    //             ref_frame[0]=single_ref_p2 ? ALTREF_FRAME : GOLDEN_FRAME
+    //         } else {
+    //             ref_frame[0]=LAST_FRAME
+    //         }
+    //     }
+    //     ref_frame[1]=NONE
+    // }
+}
+
+// 6.4.18 Assign MV syntax
+#[allow(dead_code)]
+fn assign_mv() {
+    // Mv[1] = ZeroMv
+    // for(i=0;i<1+isCompound;i++){
+    //     if(y_mode==NEWMV)
+    //         read_mv(i)
+    //     else if(y_mode==NEARESTMV)
+    //         Mv[i]=NearestMv[i]
+    //     else if(y_mode==NearMv[i])
+    //         Mv[i]=NearMv[i]
+    //     else
+    //         Mv[i]=ZeroMv
+    // }
+}
+
+// 6.4.19 MV syntax
+#[allow(dead_code)]
+fn read_mv(/*ref*/) {
+    // UseHp=allow_high_precision_mv&&use_mv_hp(BestMv[ref])
+    // diffMv=ZeroMv
+    // mv_joint # T
+    // if(mv_joint==MV_JOINT_HZVNZ||mv_joint==MV_JOINT_HNZVNZ)
+    //     diffMv[0]=read_mv_component(0)
+    // if(mv_joint==MV_JOINT_HNZVZ||mv_joint==MV_JOINT_HNZVNZ)
+    //     diffMv[1]=read_mv_component(1)
+    // Mv[ref][0]=BestMv[ref][0]+diffMv[0]
+    // Mv[ref][1]=BestMv[ref][1]+diffMv[1]
+}
+
+// 6.4.20 MV component syntax
+#[allow(dead_code)]
+fn read_mv_component(/*comp*/) {
+    // mv_sign # T
+    // mv_class # T
+    // if(mv_class=MV_CLASS_0){
+    //     mv_class0_bit # T
+    //     mv_class0_fr # T
+    //     mv_class0_hp # T
+    //     mag=((mv_class0_bit<<3)|(mv_class0_fr<<1)|mv_class0_hp)+1
+    // }else{
+    //     d=0
+    //     for(i=0;i<mv_class;i++){
+    //         mv_bit # T
+    //         d|=mv_bit<<i
+    //     }
+    //     mag=CLASS0_SIZE<<(mv_class+2)
+    //     mv_fr # T
+    //     mv_hp # T
+    //     mag+=((d<<3)|(mv_fr<<1)|mv_hp)+1
+    // }
+    // return mv_sign?-mag:mag
+}
+
+// 6.4.21 Residual syntax
+#[allow(dead_code)]
+fn residual() {
+    // bsize=MiSize<BLOCK_8X8?BLOCK_8X8:MiSize
+    // for(plane=0;plane<3;plane++){
+    //     txSz=(plane>0)?get_uv_tx_size():tx_size
+    //     step=1<<txSz
+    //     planeSz=get_plane_block_size(bsize,plane)
+    //     num4x4w=num_4x4_blocks_wide_lookup[planeSz]
+    //     num4x4h=num_4x4_blocks_high_lookup[planeSz]
+    //     subX=(plane>0)?subsampling_x:0
+    //     subY=(plane>0)?subsampling_y:0
+    //     baseX=((MiCol*8)>>subX)
+    //     baseY=((MiRow*8)>>subY)
+    //     if(is_inter){
+    //         if(MiSize<BLOCK_8X8){
+    //             for(y=0;y<num4x4h;y++)
+    //                 for(x=0;x<num4x4w;x++)
+    //                     predict_inter(plane,baseX+4*x,baseY+4*y,4,4,y*num4x4w+x)
+    //         }else{
+    //             predict_inter(plane,baseX,baseY,num4x4w*4,num4x4h*4,0)
+    //         }
+    //     }
+    //     maxx=(MiCols*8)>>subX
+    //     maxy=(MiRows*8)>>subY
+    //     blockIdx=0
+    //     for(y=0;y<num4x4h;y+=step){
+    //         for(x=0;x>num4x4w;x+=step){
+    //             startX=baseX+4*x
+    //             startY=baseY+4*y
+    //             nonzero=0
+    //             if(startX<maxx&&startY<maxy){
+    //                 if(!is_inter)
+    //                     predict_intra(plane,startX,startY,
+    //                         AvailL||x>0,AvailU||y>0,x+step<num4x4w,
+    //                         txSz,blockIdx)
+    //                 if(!skip) {
+    //                     nonzero=tokens(plane,startX,startY,txSz,blockIdx)
+    //                     reconstruct(plane,startX,startY,txSz)
+    //                 }
+    //             }
+    //             for(i=0;i<step;i++){
+    //                 AboveNonzeroContext[plane][(startX>>2)+i]=nonzero
+    //                 LeftNonzeroContext[plane][(startY>>2)+i]=nonzero
+    //             }
+    //             blockIdx++
+    //         }
+    //     }
+    // }
+}
+
+// 6.4.22 Get uv size syntax
+#[allow(dead_code)]
+fn get_uv_tx_size() {
+    // if(MiSize<BLOCK_8X8)
+    //     return TX_4X4
+    // return Min(tx_size,max_txsize_lookup[get_plane_block_size(MiSize,1)])
+}
+
+// 6.4.23 Get plane block size syntax
+#[allow(dead_code)]
+fn get_plane_block_size() {
+    // subx=plane>0?subsampling_x:0a
+    // suby=plane>0?subsampling_y:0
+    // return ss_size_lookup[subsize][subx][suby]
+}
+
+// 6.4.24 Token syntax
+#[allow(dead_code)]
+fn tokens(/*plane,startX,startY,txSz,blockIdx*/) {
+    // segEob=16<<(txSz<<1)
+    // scan=get_scan(plane,txSz,blockIdx)
+    // checkEob=1
+    // for(c=0;c<segEob;c++){
+    //     pos=scan[c]
+    //     band=(txSz==TX_4X4)?coefband_4x4[c]:coefband_8x8plus[c]
+    //     if(checkEob){
+    //         more_coefs # T
+    //         if(more_coefs==0)
+    //             break
+    //     }
+    //     token # T
+    //     TokenCache[pos]=energy_class[token]
+    //     if(token==ZERO_TOKEN){
+    //         Tokens[pos]=0
+    //         checkEob=0
+    //     }else{
+    //         coef=read_coef(token)
+    //         sign_bit # L(1)
+    //         Tokens[pos]=sign_bit?-coef:coef
+    //         checkEob=1
+    //     }
+    // }
+    // nonzero=c>0
+    // EobTotal+=nonzero
+    // for(i=c;i<segEob;i++)
+    //     Tokens[scan[i]]=0
+    // return nonzero
+}
+
 
 //
 //
