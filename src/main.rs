@@ -1167,6 +1167,272 @@ fn tokens(/*plane,startX,startY,txSz,blockIdx*/) {
     // return nonzero
 }
 
+// 6.2.25 Get scan syntax
+#[allow(dead_code)]
+fn get_scan(/*plane, txSz, blockIdx*/) {
+    // if(plane > 0||txSz == TX_32X32){
+    //     TxType = DCT_DCT
+    // }else if (txSz==TX_4X4){
+    //     if(Lossless||is_inter)
+    //         TxType=DCT_DCT
+    //     else
+    //         TxType=mode2txfm_map[MiSize<BLOCK_8X8?sub_modes[blockIdx]:y_mode]
+    // }else{
+    //     TxType=mode2txfm_map[y_mode]
+    // }
+    // if(txSz==TX_4X4){
+    //     if(TxType==ADST_DCT)
+    //         scan=row_scan_4x4
+    //     else if(TxType==DCT_ADST)
+    //         scan=col_scan_4x4
+    //     else
+    //         scan=default_scan_4x4
+    // }else if(txSz==TX_8X8){
+    //     if(TxType==ADST_DCT)
+    //         scan=row_scan_8x8
+    //     else if(TxType==DCT_ADST)
+    //         scan=col_scan_8x8
+    //     else
+    //         scan=default_scan_8x8
+    // }else if(txSz==TX_16X16){
+    //     if(TxType==ADST_DCT)
+    //         scan=row_scan_16x16
+    //     else if(TxType==DCT_ADST)
+    //         scan=col_scan_16x16
+    //     else
+    //         scan=default_scan_16x16
+    // }else{
+    //     scan=default_scan_32x32
+    // }
+    // return scan
+}
+
+// 6.4.26 Coef syntax
+#[allow(dead_code)]
+fn read_coef(/*token*/) {
+    // cat=extra_bits[token][0]
+    // numExtra=extra_bits[token][1]
+    // coef=extra_bits[token][2]
+    // if(token==DCT_VAL_CATEGORY6){
+    //     for(e=0;e<BitDepth-8;e++){
+    //         high_bit # B(255)
+    //         coef+=high_bit<<(5+BitDepth-e)
+    //     }
+    // }
+    // for(e=0;e<numExtra;e++){
+    //     coef_bit # B(cat_probs[cat][e])
+    //     coef+=coef_bit<<(numExtra-1-e)
+    // }
+    // return coef
+}
+
+// 6.5 Motion vector prediction
+
+// 6.5.1 Find mv refs syntax
+#[allow(dead_code)]
+fn find_mv_refs(/*refFrame,block*/) {
+    // RefMvCount = 0
+    // differentRefFound = 0
+    // contextCounter = 0
+    // RefListMv[0] = ZeroMv
+    // RefListMv[1] = ZeroMv
+    // mv_ref_search=mv_ref_blocks[MiSize]
+    // for(i=0;i<2;i++){
+    //     candidateR=MiRow+mv_ref_search[i][0]
+    //     candidateC=MiCol+mv_ref_search[i][1]
+    //     if(is_inside(candidateR,candidateC)){
+    //         differentRefFound=1
+    //         contextCounter+=mode_2_counter[YModes[candidateR][candidateC]]
+    //         for(j=0;j<2;j++){
+    //             if(RefFrames[candidateR][candidateC][j]==refFrame){
+    //                 get_sub_block_mv(candidateR,candidateC,j,mv_ref_search[i][1],block)
+    //                 add_mv_ref_list(j)
+    //                 break
+    //             }
+    //         }
+    //     }
+    // }
+    // for(i=2;i<MVREF_NEIGHBOURS;i++){
+    //     candidateR=MiRow+mv_ref_search[i][0]
+    //     candidateC=MiCol+mv_ref_search[i][1]
+    //     if(is_inside(candidateR,candidateC)){
+    //         differentRefFound=1
+    //         if_same_ref_frame_add_mv(candidateR,candidateC,refFrame,0)
+    //     }
+    // }
+    // if(UsePrevFrameMvs){
+    //     if_same_ref_frame_add_mv(MiRow,MiCol,refFrame,1)
+    // }
+    // if(differentRefFound){
+    //     for(i=0;i<MVREF_NEIGHBOURS;i++){
+    //         candidateR=MiRow+mv_ref_search[i][0]
+    //         candidateC=MiCol+mv_ref_search[i][1]
+    //         if(is_inside(candidateR,candidateC)){
+    //             if_diff_ref_frame_add_mv(candidateR,candidateC,refFrame,0)
+    //         }
+    //     }
+    // }
+    // if(UsePrevFrameMvs){
+    //     if_diff_ref_frame_add_mv(MiRow,MiCol,refFrame,1)
+    // }
+    // ModeContext[refFrame]=counter_to_context[contextCounter]
+    // for(i=0;i<MAX_MV_REF_CANDIDATES;i++)
+    //     clamp_mv_ref(i)
+}
+
+// 6.5.2 Is inside syntax
+#[allow(dead_code)]
+fn is_inside(/*candidateR,candidateC*/) {
+    // return (candidateR>=0&&candidateR<MiRows
+    //     &&candidateC>=MiColStart&&candidateC<MiColEnd)
+}
+
+// 6.5.3 Clamp mv ref syntax
+#[allow(dead_code)]
+fn clamp_mv_ref(/*i*/) {
+    // RefListMv[i][0]=clamp_mv_row(RefListMv[i][0],MV_BORDER)
+    // RefListMv[i][1]=clamp_mv_col(RefListMv[i][1],MV_BORDER)
+}
+
+// 6.5.4 Clamp mv row syntax
+#[allow(dead_code)]
+fn clamp_mv_row(/*mvec,border*/) {
+    // bh=num_8x8_blocks_high_lookup[MiSize]
+    // mbToTopEdge=-((MiRow*MI_SIZE)*8)
+    // mbToBottomEdge=((MiRows-bh-MiRow)*MI_SIZE)*8
+    // return Clip3(mbToTopEdge-border,mbToBottomEdge+border,mvec)
+}
+
+// 6.5.5 Clamp mv col syntax
+#[allow(dead_code)]
+fn clamp_mv_col(/*mvec,border*/) {
+    // bw=num_8x8_blocks_wide_lookup[MiSize]
+    // mbToLeftEdge=-((MiCol*MI_SIZE)*8)
+    // mbToRightEdge=((MiCols-bw-MiCOl)*MI_SIZE)*8
+    // return Clip3(mbToLeftEdge-border,mbToRightEdge+border,mvec)
+}
+
+// 6.5.6 Add mv ref list syntax
+#[allow(dead_code)]
+fn add_mv_ref_list(/*refList*/) {
+    // if(RefMvCount>=2)
+    //     return
+    // if(RefMvCount>0){
+    //     if(CandidateMv[refList]==RefListMv[0])
+    //         return
+    // }
+    // RefListMv[RefMvCount]=CandidateMv[refList]
+    // RefMvCount++
+}
+
+// 6.5.7 If same ref frame add syntax
+#[allow(dead_code)]
+fn if_same_ref_frame_add_mv(/*candidateR,candidateC,refFrame,usePrev*/) {
+    // for(j=0;j<2;j++){
+    //     get_block_mv(candidateR,candidateC,j,usePrev)
+    //     if(CandidateFrame[j]==refFrame){
+    //         add_mv_ref_list(j)
+    //         return
+    //     }
+    // }
+}
+
+// 6.5.8 If diff ref frame add syntax
+#[allow(dead_code)]
+fn if_diff_ref_frame_add_mv(/*candidateR,candidateC,refFrame,usePrev*/) {
+    // for(j=0;j<2;j++)
+    //     get_block_mv(candidateR,candidateC,j,usePrev)
+    // mvsSame=(CandidateMv[0]==CandidateMv[1])
+    // if(CandidateFrame[0]>INTRA_FRAME&&CandidateFrame[0]!=refFrame){
+    //     scale_mv(0,refFrame)
+    //     add_mv_ref_list(0)
+    // }
+    // if(CandidateFrame[1]>INTRA_FRAME&&CandidateFrame[1]!=refFrame&&!mvsSame){
+    //     scale_mv(1,refFrame)
+    //     add_mv_ref_list(1)
+    // }
+}
+
+// 6.5.9 Scale mv syntax
+#[allow(dead_code)]
+fn scale_mv(/*refList,refFrame*/) {
+    // candFrame=CandidateFrame[refList]
+    // if(ref_frame_sign_bias[candFrame]!=ref_frame_sign_bias[refFrame])
+    //     for(j=0;j<2;j++)
+    //         CandidateMv[refList][j]*=-1
+}
+
+// 6.5.10 Get block mv syntax
+#[allow(dead_code)]
+fn get_block_mv(/*candidateR,candidateC,refList,usePrev*/) {
+    // if(usePrev){
+    //     CandidateMv[refList]=PrevMvs[candidateR][candidateC][refList]
+    //     CandidateFrame[refList]=PrevRefFrames[candidateR][candidateC][refList]
+    // }else{
+    //     CandidateMv[refList]=Mvs[candidateR][candidateC][refList]
+    //     CandidateFrame[refList]=RefFrames[candidateR][candidateC][refList]
+    // }
+}
+
+// 6.5.11 Get sub block mv syntax
+#[allow(dead_code)]
+fn get_sub_block_mv(/*candidateR,candidateC,refList,deltaCol,block*/) {
+    // idx=(block>=0)?idx_n_column_to_subblock[block][deltaCol==0]:3
+    // CandidateMv[refList]=SubMvs[candidateR][candidateC][refList][idx]
+}
+
+// 6.5.12 Find best ref mvs syntax
+// decoder 側で find best ?
+#[allow(dead_code)]
+fn find_best_ref_mvs(/*refList*/) {
+    // for(i=0;i<MAX_MV_REF_CANDIDATES;i++){
+    //     deltaRow=RefListMv[i][0]
+    //     deltaCol=RefListMv[i][1]
+    //     if(!allow_high_precision_mv||!use_mv_hp(RefListMv[i])){
+    //         if(deltaRow&1)
+    //             deltaRow+=(deltaRow>0?-1:1)
+    //         if(deltaCol&1)
+    //             deltaCol+=(deltaCol>0?-1:1)
+    //     }
+    //     RefListMv[i][0]=clamp_mv_row(deltaRow,(BORDERINPIXELS-INTERP_EXTEND)<<3)
+    //     RefListMv[i][1]=clamp_mv_col(deltaCol,(BORDERINPIXELS-INTERP_EXTEND)<<3)
+    // }
+    // NearestMv[refList]=RefListMv[0]
+    // NearMv[refList]=RefListMv[1] // ???
+    // BestMv[refList]=RefListMv[0]
+}
+
+// 6.5.13 Use mv hp syntax
+#[allow(dead_code)]
+fn use_mv_hp(/*deltaMv*/) {
+    // return((Abs(deltaMv[0])>>3)<COMPANDED_MVREF_THRESH&&
+    //     (Abs(deltaMv[1])>>3)<COMPANDED_MVREF_THRESH)
+}
+
+// 6.5.14 Append sub8x8 mvs syntax
+#[allow(dead_code)]
+fn append_sub8x8_mvs(/*block,refList*/) {
+    // find_mv_refs(ref_frame[refList],block)
+    // dst=0
+    // if(block==0){
+    //     for(i=0;i<2;i++)
+    //         sub8x8Mvs[dst++]=RefListMv[i]
+    // }else if(block<=2){
+    //     sub8x8Mvs[dst++]=BlockMvs[refList][0]
+    // }else{
+    //     sub8x8Mvs[dst++]=BlockMvs[refList][2]
+    //     for(idx=1;idx>=0&&dst<2;idx--)
+    //         if(BlockMvs[refList][idx]!=sub8x8Mvs[0])
+    //             sub8x8Mvs[dst++]=BlockMvs[refList][idx]
+    // }
+    // for(n=0;n<2;&&dst<2;n++)
+    //     if(RefListMv[n]!=sub8x8Mvs[0])
+    //         sub8x8Mvs[dst++]=RefListMv[n]
+    // if(dst<2)
+    //     sub8x8Mvs[dst++]=ZeroMv
+    // NearestMv[refList]=sub8x8Mvs[0]
+    // NearMv[refList]=sub8x8Mvs[1]
+}
 
 //
 //
