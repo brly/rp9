@@ -1,14 +1,61 @@
 #[allow(dead_code)]
-struct Bitstream {
+struct BitStream {
     value: u16,
     width: u16,
 }
 
-// 6.1 Frame syntax
+impl BitStream {
+    fn new(v: u16, w: u16) -> BitStream {
+        BitStream {
+            value: v,
+            width: w,
+        }
+    }
+}
+
+#[allow(dead_code,non_camel_case_types)]
+enum FrameType {
+    KEY_FRAME = 0,
+    NON_KEY_FRAME = 1,
+}
+
+#[allow(dead_code,non_snake_case)]
+struct UncompressedHeader {
+    LastFrameType: FrameType,
+    frame_type: FrameType,
+}
+
 #[allow(dead_code)]
-fn frame(/*sz: u32*/) {
+impl UncompressedHeader {
+    fn new() -> UncompressedHeader {
+        UncompressedHeader {
+            LastFrameType: FrameType::KEY_FRAME,
+            frame_type: FrameType::KEY_FRAME,
+        }
+    }
+}
+
+#[allow(dead_code)]
+struct Context {
+    bs: Vec<BitStream>,
+}
+
+impl Context {
+    fn new() -> Context {
+        Context {
+            bs: vec![],
+        }
+    }
+
+    fn f(&mut self, value: u16, width: u16) {
+        self.bs.push(BitStream::new(value, width));
+    }
+}
+
+// 6.1 Frame syntax
+fn frame(context: &mut Context/*sz: u32*/) {
     // startBitPos = get_position()
-    // uncompressed_header()
+    uncompressed_header(context);
     // trailing_bits()
     // if ( header_size_in_bytes == 0) {
     //   while ( get_position() < startBitPos + 8 *sz )
@@ -19,6 +66,7 @@ fn frame(/*sz: u32*/) {
     // load_probs2( frame_context_idx )
     // clear_counts()
     // init_bool( header_size_in_bytes )
+    // compressed_header()
     // exit_bool()
     // endBitPos = get_position()
     // headerBytes = (endBitPos - startBitPos) / 8
@@ -49,15 +97,15 @@ fn refresh_probs() {
 }
 
 // 6.2 Uncompressed header syntax
-#[allow(dead_code)]
-fn uncompressed_header() {
-    // frame_marker     # f(2)
-    // profile_low_bit  # f(1)
-    // profile_high_bit # f(1)
+fn uncompressed_header(context: &mut Context) {
+    context.f(2, 2); // frame_marker     # f(2)
+    context.f(0, 1); // profile_low_bit  # f(1)
+    context.f(0, 1); // profile_high_bit # f(1)
     // Profile = (profile_high_bit << 1) + profile_low_bit
     // if (Profile == 3)
     //   reserved_zero  # f(1)
-    // show_existing_frame  # f(1)
+    // 存在するフレームを見せるかどうかのフラグ ?
+    context.f(0, 1); // show_existing_frame  # f(1)
     // if ( show_existing_frame == 1) {
     //   frame_to_show_map_idx # f(3)
     //   header_size_in_bytes = 0
@@ -66,99 +114,97 @@ fn uncompressed_header() {
     //   return
     // }
     // LastFrameType = frame_type
-    // frame_type       # f(1)
-    // show_frame       # f(1)
-    // error_resilient_mode # f(1)
-    // if ( frame_type == KEY_FRAME ) {
-    //   frame_sync_code()
-    //   color_config()
-    //   frame_size()
-    //   render_size()
-    //   refresh_frame_flags = 0xFF
-    //   FrameIsIntra = 1
-    // } else {
-    //   if ( show_frame == 0 ) {
-    //     intra_only   # f(1)
-    //   } else {
-    //     intra_only = 0
-    //   }
-    //   FrameIsIntra = intra_only
-    //   if ( error_resilient_mode ) {
-    //     reset_frame_context # f(2)
-    //   } else {
-    //     reset_frame_context = 0
-    //   }
-    //   if ( intra_only == 1 ) {
-    //     frame_sync_code()
-    //     if ( Profile > 0 ) {
-    //       color_config()
-    //     } else {
-    //       color_space = CS_BT_601
-    //       subsampling_x = 1
-    //       subsampling_y = 1
-    //       BitDepth = 8
-    //     }
-    //     refresh_frame_flags  # f(8)
-    //     frame_size()
-    //     render_size()
-    //   } else {
-    //     refresh_frame_flags  # f(8)
-    //     for ( i = 0; i < 3; i++ ) {
-    //       ref_frame_idx[i]                   # f(3)
-    //       ref_frame_sign_bias[LAST_FRAME+i]  # f(1)
-    //     }
-    //     frame_size_with_refs()
-    //     allow_high_precision_mv  # f(1)
-    //     read_interpolation_filter()
-    //   }
-    // }
-    // if ( error_resilient_mode == 0 ) {
-    //   refresh_frame_context          # f(1)
-    //   frame_parallel_decoding_mode   # f(1)
-    // } else {
-    //   refresh_frame_context = 0
-    //   frame_parallel_decoding_mode = 1
-    // }
-    // frame_context_idx # f(2)
-    // if ( FrameIsIntra || error_resilient_mode ) {
-    //   setup_past_independence()
-    //   if ( frame_type == KEY_FRAME || error_resilient_mode == 1
-    //                                || reset_frame_context == 3) {
-    //     for ( i = 0; i < 4; i++ ){
-    //       save_probs(i)
-    //     }
-    //   } else if ( reset_frame_context == 2 ) {
-    //     save_probs( frame_context_idx )
-    //   }
-    //   frame_context_idx = 0
-    // }
-    // loop_filter_params()
-    // quantization_params()
-    // segmentation_params()
-    // tile_info()
-    // header_size_in_bytes # f(16)
+    context.f(0, 1); // とりあえず固定で KEY_FRAME // frame_type       # f(1)
+    context.f(1, 1); // 説明がない // show_frame       # f(1)
+    context.f(0, 1); // error_resilient_mode # f(1)
+    if true {// if ( frame_type == KEY_FRAME ) {
+        frame_sync_code(context); //   frame_sync_code()
+        color_config(context); //   color_config()
+        frame_size(context); //   frame_size()
+        render_size(context); //   render_size()
+        //   refresh_frame_flags = 0xFF
+        //   FrameIsIntra = 1
+    } else {
+        //   if ( show_frame == 0 ) {
+        //     intra_only   # f(1)
+        //   } else {
+        //     intra_only = 0
+        //   }
+        //   FrameIsIntra = intra_only
+        //   if ( error_resilient_mode ) {
+        //     reset_frame_context # f(2)
+        //   } else {
+        //     reset_frame_context = 0
+        //   }
+        //   if ( intra_only == 1 ) {
+        //     frame_sync_code()
+        //     if ( Profile > 0 ) {
+        //       color_config()
+        //     } else {
+        //       color_space = CS_BT_601
+        //       subsampling_x = 1
+        //       subsampling_y = 1
+        //       BitDepth = 8
+        //     }
+        //     refresh_frame_flags  # f(8)
+        //     frame_size()
+        //     render_size()
+        //   } else {
+        //     refresh_frame_flags  # f(8)
+        //     for ( i = 0; i < 3; i++ ) {
+        //       ref_frame_idx[i]                   # f(3)
+        //       ref_frame_sign_bias[LAST_FRAME+i]  # f(1)
+        //     }
+        //     frame_size_with_refs()
+        //     allow_high_precision_mv  # f(1)
+        //     read_interpolation_filter()
+        //   }
+    }
+    if true { // if ( error_resilient_mode == 0 ) {
+        context.f(0, 1); // 計算した確率をストアするか捨てるかどうか. 0 で捨てる  refresh_frame_context # f(1)
+        context.f(0, 1); // マルチスライスと同じ？ frame_parallel_decoding_mode # f(1)
+    } else { // } else {
+        //   refresh_frame_context = 0
+        //   frame_parallel_decoding_mode = 1
+    }
+    context.f(0, 2); // メモリ上にあるとされる 0~3 までのいずれかのテーブルを指定 // frame_context_idx # f(2)
+    if true { // if ( FrameIsIntra || error_resilient_mode ) {
+        // 状態をかなり初期化するらしい // setup_past_independence()
+        //   if ( frame_type == KEY_FRAME || error_resilient_mode == 1
+        //                                || reset_frame_context == 3) {
+        //     for ( i = 0; i < 4; i++ ){
+        //       save_probs(i)
+        //     }
+        //   } else if ( reset_frame_context == 2 ) {
+        //     save_probs( frame_context_idx )
+        //   }
+        //   frame_context_idx = 0
+    }
+    loop_filter_params(context);
+    quantization_params(context);
+    segmentation_params(context);
+    tile_info(context);
+    // compressed ヘッダサイズを出す // header_size_in_bytes # f(16)
 }
 
 // 6.2.1 Frame sync syntax
-#[allow(dead_code)]
-fn frame_sync_code() {
-    // frame_sync_byte_0    # f(8)
-    // frame_sync_byte_1    # f(8)
-    // frame_sync_byte_2    # f(8)
+fn frame_sync_code(context: &mut Context) {
+    context.f(0x49, 8); // frame_sync_byte_0    # f(8)
+    context.f(0x83, 8); // frame_sync_byte_1    # f(8)
+    context.f(0x42, 8); // frame_sync_byte_2    # f(8)
 }
 
 // 6.2.2 Color config syntax
-#[allow(dead_code)]
-fn color_config() {
+fn color_config(context: &mut Context) {
     // if ( Profile >= 2 ) {
     //   ten_or_twelve_bit  # f(1)
     //   BitDepth = ten_or_twelve_bit ? 12 : 10
     // } else {
     //   BitDepth = 8
     // }
-    // color_space  # f(3)
-    // if ( color_space != CS_RGB ) {
-    //   color_range    # f(1)
+    context.f(1, 3); // color_space  # f(3)
+    if true {// if ( color_space != CS_RGB ) {
+        context.f(1, 1); //   color_range    # f(1)
     //   if ( Profile == 1 || Profile == 3 ) {
     //     subsampling_x    # f(1)
     //     subsampling_y    # f(1)
@@ -167,7 +213,7 @@ fn color_config() {
     //     subsampling_x = 1
     //     subsampling_y = 1
     //   }
-    // } else {
+    } // } else {
     //   color_range = 1
     //   if ( Profile == 1 || Profile == 3 ) {
     //     subsampling_x = 0
@@ -178,19 +224,17 @@ fn color_config() {
 }
 
 // 6.2.3 Frame size syntax
-#[allow(dead_code)]
-fn frame_size() {
-    // frame_width_minus_1  # f(16)
-    // frame_height_minus_1 # f(16)
+fn frame_size(context: &mut Context) {
+    context.f(351, 16); // frame_width_minus_1  # f(16)
+    context.f(287, 16); // frame_height_minus_1 # f(16)
     // FrameWidth = frame_width_minus_1 + 1
     // FrameHeight = frame_height_minus_1 + 1
     // compute_image_size()
 }
 
 // 6.2.4 Render size syntax
-#[allow(dead_code)]
-fn render_size() {
-    // render_and_frame_size_different  # f(1)
+fn render_size(context: &mut Context) {
+    context.f(0, 1); // よくわかってない TODO // render_and_frame_size_different  # f(1)
     // if ( render_and_frame_size_different == 1 ) {
     //   render_width_minus_1   # f(16)
     //   render_height_minus_1  # f(16)
@@ -242,11 +286,10 @@ fn read_interpolation_filter() {
 }
 
 // 6.2.8 Loop filter params syntax
-#[allow(dead_code)]
-fn loop_filter_params() {
-    // loop_filter_level            # f(6)
-    // loop_filter_sharpness        # f(3)
-    // loop_filter_delta_enabled    # f(1)
+fn loop_filter_params(context: &mut Context) {
+    context.f(0, 6); // 0 だと invoke しなさそう // loop_filter_level # f(6)
+    context.f(0, 3); // loop_filter_sharpness        # f(3)
+    context.f(0, 1); // loop_filter_delta_enabled    # f(1)
     // if ( loop_filter_delta_enabled == 1 ) {
     //   loop_filter_delta_update   # f(1)
     //   if ( loop_filter_delta_update == 1 ) {
@@ -266,20 +309,18 @@ fn loop_filter_params() {
 }
 
 // 6.2.9 Quantization params syntax
-#[allow(dead_code)]
-fn quantization_params() {
-    // base_q_idx   # f(8)
-    // delta_q_y_dc = read_delta_q()
-    // delta_q_uv_dc = read_delta_q()
-    // delta_q_uv_ac = read_delta_q()
+fn quantization_params(context: &mut Context) {
+    context.f(1, 8); // base_q_idx   # f(8)
+    read_delta_q(context); // delta_q_y_dc = read_delta_q()
+    read_delta_q(context); // delta_q_uv_dc = read_delta_q()
+    read_delta_q(context); // delta_q_uv_ac = read_delta_q()
     // Lossless = base_q_idx == 0 && delta_q_y_dc == 0
     //                              && delta_q_uv_dc == 0 && delta_q_uv_ac == 0
 }
 
 // 6.2.10 Delta quantizer syntax
-#[allow(dead_code)]
-fn read_delta_q() {
-    // delta_coded  # f(1)
+fn read_delta_q(context: &mut Context) {
+    context.f(0, 1); // delta_coded  # f(1)
     // if ( delta_coded ) {
     //   delta_q    # f(4)
     // } else {
@@ -289,9 +330,8 @@ fn read_delta_q() {
 }
 
 // 6.2.11 Segmentation params syntax
-#[allow(dead_code)]
-fn segmentation_params() {
-    // segmentation_enabled # f(1)
+fn segmentation_params(context: &mut Context) {
+    context.f(0, 1); // segmentation_enabled # f(1)
     // if ( segmentation_enabled == 1 ) {
     //   segmentation_update_map    # f(1)
     //   if ( segmentation_update_map == 1 ) {
@@ -338,8 +378,8 @@ fn read_prob() {
 }
 
 // 6.2.13 Tile info syntax
-#[allow(dead_code)]
-fn tile_info() {
+fn tile_info(context: &mut Context) {
+    // TODO Tile の計算をしている. ここでこけそう.
     // minLog2TileCols = calc_min_log2_tile_cols()
     // maxLog2TileCols = calc_max_log2_tile_cols()
     // tile_cols_log2 = minLog2TileCols
@@ -350,6 +390,7 @@ fn tile_info() {
     //   else
     //     break
     // }
+    // TODO ここも完全に理解できない...
     // tile_rows_log2   # f(1)
     // if ( tile_rows_log2 == 1 ) {
     //   increment_tile_rows_log2   # f(1)
@@ -1456,5 +1497,6 @@ fn append_sub8x8_mvs(/*block,refList*/) {
 //
 
 fn main() {
-    // println!("Hello, world!");
+    let mut context = Context::new();
+    frame(&mut context);
 }
